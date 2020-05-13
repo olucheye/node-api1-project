@@ -1,10 +1,11 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const shortid = require('shortid');
+const env = require('dotenv').config();
 
 //@DB: localhost MongoDB
 //@desc: posting to localhost
-mongoose.connect('mongodb://localhost:27017/lambda', {useNewUrlParser:true,  useUnifiedTopology: true});
+mongoose.connect(process.env.DB_URL, {useNewUrlParser:true,  useUnifiedTopology: true});
 
 const db = mongoose.connection;
 db.once('open', ()=> console.log(`Database successfully connected`));
@@ -38,7 +39,11 @@ app.use(express.json());
 app.post('/api/users', (req,res)=>{
     const {name, bio} = req.body;
 
-    if(name ==='' || bio ===''){
+    //trimming off whitespaces from the textbox
+    let trimmedName = name.trim();
+    let trimmedBio = bio.trim();
+
+    if(trimmedName ==='' || trimmedBio ===''){
         res.status(400).json({
             success: false,
             errorMessage: "Please provide name and bio for the user."
@@ -134,8 +139,12 @@ app.put('/api/users/:id', (req,res)=>{
     const {id} = req.params;
     const{name, bio} = req.body;
 
+    //trimming off whitespaces from the textbox
+    let trimmedName = name.trim();
+    let trimmedBio = bio.trim();
+
     User.findOneAndUpdate(
-        {_id : id}, {name: name, bio: bio}, {overwrite: true}
+        {_id : id}, {name: trimmedName, bio: trimmedBio}, {overwrite: true}
     )
         .then(user=> {
             if (!user) {
@@ -144,7 +153,7 @@ app.put('/api/users/:id', (req,res)=>{
                     success: false,
                     message: "The user with the specified ID does not exist."
                 })
-            }if(user && name === "" || bio === ""){
+            }if(user && trimmedName === "" || trimmedBio === ""){
                 res.status(400).json({
                     success: false,
                     errorMessage: "Please provide name and bio for the user."
@@ -166,5 +175,4 @@ app.put('/api/users/:id', (req,res)=>{
 
 //PORT 
 const port = (process.env.PORT || 3000)
-
 app.listen(port, ()=> console.log(`Server open and running on Port ${port}`));
