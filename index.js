@@ -102,6 +102,32 @@ app.get('/api/users/:id', (req,res)=> {
         }));
 });
 
+//@ ROUTE: DELETE SPECIFIC USER
+//@ desc: Deletes after fetching specific user by ID from the DB
+app.delete('/api/users/:id', (req,res)=>{
+    const {id} = req.params;
+
+    User.findOneAndDelete({_id:id})
+        .then(user => {
+            if(!user){
+                res.status(404).json({
+                    success: false,
+                    message: "The user with the specified ID does not exist."
+                })
+            }else{
+                res.status(200).json({
+                    success: true,
+                    messasge: `${user.name} was successfully deleted`
+                })
+            }
+        })
+        .catch(err => res.status(500).json({
+            success: false,
+            errorMessage: "The user could not be removed"
+        }));
+});
+
+
 //PORT 
 const port = (process.env.PORT || 3000)
 
